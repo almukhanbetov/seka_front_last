@@ -1,74 +1,119 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { useEffect, useState } from 'react'
+import runDiagnostics from '../../diagnose'
+import {
+  View,
+  Text,
+  SafeAreaView,
+  ActivityIndicator,
+  Alert,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native'
+import { Picker } from '@react-native-picker/picker'
+import { useRouter } from 'expo-router'
+import { useAppStore } from '../../lib/store'
+import { startTrip } from '../../lib/api'
+import { getBaseUrl } from '../../lib/config'
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
-}
+  const [drivers, setDrivers] = useState<{ id: number; name: string }[]>([])
+  const [selectedDriver, setSelectedDriver] = useState<number | null>(null)
+  const [loading, setLoading] = useState(true)
 
+  const setUserId = useAppStore((s) => s.setUserId)
+  const setTripId = useAppStore((s) => s.setTripId)
+  const router = useRouter()
+  useEffect(() => {
+    runDiagnostics()
+  }, [])
+  const fetchDrivers = async () => {
+    try {
+      const res = await fetch(`${getBaseUrl()}/api/drivers`)
+      const json = await res.json()
+      setDrivers(Array.isArray(json.drivers) ? json.drivers : [])
+    } catch (err) {
+      Alert.alert('Ошибка', 'Не удалось загрузить водителей')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleStart = async () => {
+    if (!selectedDriver) {
+      Alert.alert('Выберите водителя')
+      return
+    }
+
+    setUserId(selectedDriver)
+    const tripId = await startTrip(selectedDriver)
+    setTripId(tripId)
+    router.push('/trip')
+  }
+
+  useEffect(() => {
+    fetchDrivers()
+  }, [])
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.title}>🚖 Выбор водителя</Text>
+
+      {loading ? (
+        <ActivityIndicator size="large" color="#22c55e" />
+      ) : (
+        <Picker
+          selectedValue={selectedDriver}
+          onValueChange={(itemValue) => setSelectedDriver(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="-- Выберите водителя --" value={null} />
+          {drivers.map((d) => (
+            <Picker.Item key={d.id} label={d.name} value={d.id} />
+          ))}
+        </Picker>
+      )}
+
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleStart}
+        disabled={!selectedDriver}
+      >
+        <Text style={styles.buttonText}>🚀 Поехали!</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
+  )
+}
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  picker: {
+    marginBottom: 24,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+  },
+  button: {
+    backgroundColor: '#22c55e',
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    gap: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+})
