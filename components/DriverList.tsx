@@ -22,6 +22,7 @@ export default function DriverList({ onEdit }: Props) {
 
   const fetchDrivers = async () => {
     try {
+      console.log('📡 Загружаю:', `${getBaseUrl()}/api/drivers`)
       const res = await fetch(`${getBaseUrl()}/api/drivers`)
       const json = await res.json()
       setDrivers(json.drivers)

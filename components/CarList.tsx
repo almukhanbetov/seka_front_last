@@ -61,13 +61,14 @@ export default function CarList({ onEdit }: Props) {
     ])
   }
 
-  const filteredCars = cars.filter((car) =>
+  const filteredCars = (cars ?? []).filter((car) =>
     (car.brand + car.model).toLowerCase().includes(search.toLowerCase())
   )
 
   // 🔁 Auto-update via WebSocket
   const setupWebSocket = () => {
-    const socket = new WebSocket(`ws://${getBaseUrl().replace('http://', '')}/ws`)
+    const baseUrl = getBaseUrl().replace(/^http/, 'ws')
+    const socket = new WebSocket(`${baseUrl}/ws`)
 
     socket.onopen = () => {
       console.log('🚗 WebSocket подключён (car list)')

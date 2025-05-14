@@ -102,7 +102,13 @@ export default function SearchScreen() {
       </View>
 
       {/* Карта */}
-      <MapView ref={mapRef} style={styles.map} initialRegion={region} showsUserLocation>
+      <MapView 
+        ref={mapRef} 
+        provider="google"
+        style={styles.map} 
+        initialRegion={region} 
+        showsUserLocation
+       >
         {filtered.map((d) => (
           <Marker
             key={d.id}

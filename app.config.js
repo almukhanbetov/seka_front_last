@@ -41,8 +41,14 @@ export default ({ config }) => {
       android: {
         package: 'com.almuko.seka', // укажи свой, если планируешь публиковать
         versionCode: Math.floor(Date.now() / 1000), // авто-уникальный код
-        permissions: []
+        permissions: [],
+        config: {
+          googleMaps: {
+            apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
+          },
+        },
       },
+      
       // для Web
       web: {
         favicon: './assets/icon.png'

@@ -19,7 +19,6 @@ type Trip = {
   duration: number
   distance: number
 }
-
 export default function HistoryScreen() {
   const [trips, setTrips] = useState<Trip[]>([])
   const [loading, setLoading] = useState(true)

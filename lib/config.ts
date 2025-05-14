@@ -15,3 +15,12 @@ export const getBaseUrl = () => {
   console.log('📦 Base URL:', baseUrl) // ✅ безопасно
   return baseUrl
 }
+
+
+// export const getBaseUrl = () => {
+//   return 'https://api.steamtg.com'
+// }
+
+// export const getBaseUrl = () => {
+//     return '192.168.0.105:8383'
+//   }

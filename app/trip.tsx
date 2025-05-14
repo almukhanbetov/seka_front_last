@@ -93,7 +93,7 @@ export default function TripScreen() {
         </View>
       </View>
 
-      <MapView ref={mapRef} style={styles.map} showsUserLocation>
+      <MapView ref={mapRef} provider="google" style={styles.map} showsUserLocation>
         {location && (
           <Marker
             coordinate={{ latitude: location.lat, longitude: location.lng }}
